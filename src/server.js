@@ -27,11 +27,19 @@ const app = express();
 
 
 
-app.use(cors({
-  origin: "*",
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"]
-}));
+
+app.use(
+  cors({
+    origin: [
+      "http://localhost:3000",
+      "https://bill-frontend-two.vercel.app",
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  })
+);
+
+app.use(express.json());
 
 
 
