@@ -57,9 +57,9 @@ app.get("/", (req, res) => {
   res.send("✅ Shop Billing Backend Running");
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 10000;
 
-app.listen(PORT,"0.0.0.0", () => {
+app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📱 Frontend: http://localhost:3000`);
 });
