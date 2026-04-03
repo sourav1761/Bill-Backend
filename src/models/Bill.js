@@ -1,20 +1,22 @@
 import mongoose from 'mongoose';
 
+// Schema for each bill item
 const billItemSchema = new mongoose.Schema({
   productId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Product',
-    required: false   // optional — custom items won't have a productId
+    required: false // manual/custom items won't have productId
   },
-  name: String,
+  name: { type: String, required: true },
   size: String,
-  mrp: Number,
-  rcp: Number,
-  quantity: Number,
-  total: Number
-  // REMOVED: code field
+  mrp: { type: Number, required: true, min: 0 },
+  rcp: { type: Number, required: true, min: 0 },
+  quantity: { type: Number, required: true, min: 1 },
+  total: { type: Number, required: true, min: 0 },
+  isCustom: { type: Boolean, default: false } // flag for manual/custom items
 });
 
+// Main Bill schema
 const billSchema = new mongoose.Schema({
   billNumber: {
     type: String,
@@ -53,7 +55,7 @@ const billSchema = new mongoose.Schema({
   }
 });
 
-// Generate bill number
+// Auto-generate bill number if not provided
 billSchema.pre('save', function(next) {
   if (!this.billNumber) {
     const date = new Date();
@@ -67,4 +69,5 @@ billSchema.pre('save', function(next) {
 });
 
 const Bill = mongoose.model('Bill', billSchema);
+
 export default Bill;
