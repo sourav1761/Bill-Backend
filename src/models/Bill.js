@@ -4,7 +4,7 @@ const billItemSchema = new mongoose.Schema({
   productId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Product',
-    required: true
+    required: false   // optional — custom items won't have a productId
   },
   name: String,
   size: String,

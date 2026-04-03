@@ -6,73 +6,63 @@ import QRCode from 'qrcode';
 // Create new bill
 export const createBill = async (req, res) => {
   try {
-    
-
     const { billNumber, items, whatsappNumber, customerName } = req.body;
+
     if (!items || items.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'At least one item is required'
-      });
+      return res.status(400).json({ success: false, message: 'At least one item is required' });
     }
 
-    // Calculate totals
-    let subtotal = 0;
-    let totalDiscount = 0;
-    
-    // Process each item
+    // Process each item — custom items skip DB lookup
+    const billItems = [];
     for (const item of items) {
-      const product = await Product.findById(item.productId);
-      
-      if (!product) {
-        return res.status(404).json({
-          success: false,
-          message: `Product ${item.productId} not found`
+      if (item.isCustom) {
+        billItems.push({
+          name: item.name,
+          size: item.size,
+          mrp: item.mrp,
+          rcp: item.rcp,
+          quantity: item.quantity,
+          total: item.rcp * item.quantity,
+        });
+      } else {
+        const product = await Product.findById(item.productId);
+        if (!product) {
+          return res.status(404).json({ success: false, message: `Product ${item.productId} not found` });
+        }
+        billItems.push({
+          productId: product._id,
+          name: product.name,
+          size: product.size,
+          mrp: product.mrp,
+          rcp: product.rcp,
+          quantity: item.quantity,
+          total: product.rcp * item.quantity,
         });
       }
-
-      // Calculate item totals
-      const itemMrpTotal = product.mrp * item.quantity;
-      const itemRcpTotal = product.rcp * item.quantity;
-      const itemDiscount = itemMrpTotal - itemRcpTotal;
-      
-      item.mrp = product.mrp;
-      item.rcp = product.rcp;
-      item.total = itemRcpTotal;
-      item.name = product.name;
-      item.size = product.size;
-      
-      subtotal += itemMrpTotal;
-      totalDiscount += itemDiscount;
     }
 
-    const total = subtotal - totalDiscount;
+    const subtotal = billItems.reduce((acc, item) => acc + item.mrp * item.quantity, 0);
+    const totalRCP = billItems.reduce((acc, item) => acc + item.rcp * item.quantity, 0);
+    const discount = subtotal - totalRCP;
+    const total = totalRCP;
 
-    // Create bill
-    const bill = new Bill({
+    const savedBill = await Bill.create({
       billNumber,
-      items,
+      items: billItems,
       subtotal,
-      discount: totalDiscount,
+      discount,
       total,
-      customerName,
-      whatsappNumber
+      customerName: customerName || '',
+      whatsappNumber: whatsappNumber || '',
+      printed: false,
+      whatsappSent: false,
     });
 
-    const savedBill = await bill.save();
-
-    res.status(201).json({
-      success: true,
-      bill: savedBill
-    });
+    res.status(201).json({ success: true, bill: savedBill });
 
   } catch (error) {
     console.error('CREATE BILL ERROR:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error while creating bill',
-      error: error.message
-    });
+    res.status(500).json({ success: false, message: 'Server error while creating bill', error: error.message });
   }
 };
 
