@@ -6,8 +6,9 @@ import QRCode from 'qrcode';
 // Create new bill
 export const createBill = async (req, res) => {
   try {
-    const { items, customerName, whatsappNumber } = req.body;
+    
 
+    const { billNumber, items, whatsappNumber, customerName } = req.body;
     if (!items || items.length === 0) {
       return res.status(400).json({
         success: false,
@@ -49,6 +50,7 @@ export const createBill = async (req, res) => {
 
     // Create bill
     const bill = new Bill({
+      billNumber,
       items,
       subtotal,
       discount: totalDiscount,
