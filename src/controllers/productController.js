@@ -225,35 +225,32 @@ import mongoose from "mongoose";
 // ===============================
 export const createProduct = async (req, res) => {
   try {
-    const { name, size, mrp } = req.body;
+    const { name, size, mrp, rcp } = req.body;
 
-    // ✅ Validation
-    if (!name || !size || !mrp) {
+    if (!name || !size || !mrp || !rcp) {
       return res.status(400).json({
         success: false,
-        message: "Name, size, and MRP are required"
+        message: "Name, size, MRP and RCP are required"
       });
     }
 
     const mrpNumber = Number(mrp);
+    const rcpNumber = Number(rcp);
+
     if (isNaN(mrpNumber) || mrpNumber <= 0) {
-      return res.status(400).json({
-        success: false,
-        message: "MRP must be a positive number"
-      });
+      return res.status(400).json({ success: false, message: "MRP must be a positive number" });
+    }
+    if (isNaN(rcpNumber) || rcpNumber <= 0 || rcpNumber > mrpNumber) {
+      return res.status(400).json({ success: false, message: "RCP must be a positive number less than or equal to MRP" });
     }
 
-    // ✅ Calculate RCP (30% discount)
-    const rcp = Number((mrpNumber * 0.7).toFixed(2));
-
-    // ✅ Generate QR Code value
     const qrCode = crypto.randomUUID();
 
     const product = await Product.create({
       name: name.trim(),
       size: size.trim(),
       mrp: mrpNumber,
-      rcp,
+      rcp: rcpNumber,
       qrCode
     });
 
@@ -388,10 +385,8 @@ export const updateProduct = async (req, res) => {
     const { id } = req.params;
     const updateData = req.body;
 
-    if (updateData.mrp) {
-      const mrpNumber = Number(updateData.mrp);
-      updateData.rcp = Number((mrpNumber * 0.7).toFixed(2));
-    }
+    if (updateData.mrp) updateData.mrp = Number(updateData.mrp);
+    if (updateData.rcp) updateData.rcp = Number(updateData.rcp);
 
     const product = await Product.findByIdAndUpdate(
       id,
