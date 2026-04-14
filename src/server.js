@@ -7,6 +7,7 @@ import connectDB from "./config/db.js";
 import productRoutes from "./routes/productRoutes.js";
 import billingRoutes from "./routes/billingRoutes.js";
 import printRoutes from "./routes/printRoutes.js";
+import workRoutes from "./routes/workRoutes.js";
 
 dotenv.config();
 connectDB();
@@ -34,7 +35,7 @@ app.use(
       "http://localhost:3000",
       "https://bill-frontend-two.vercel.app",
     ],
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     credentials: true,
   })
 );
@@ -57,6 +58,7 @@ app.use(morgan("dev"));
 app.use("/api/products", productRoutes);
 app.use("/api/bills", billingRoutes);
 app.use("/api/print", printRoutes);
+app.use("/api", workRoutes);
 
 /* =====================
    HEALTH CHECK
